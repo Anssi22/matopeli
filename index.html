@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matopeli</title>
+  <style>
+    body {
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+    canvas {
+      border: 2px solid #fff;
+    }
+    h1 {
+      position: absolute;
+      top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Matopeli</h1>
+  <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const boxSize = 20; // Yhden ruudun koko
+    const rows = canvas.height / boxSize;
+    const cols = canvas.width / boxSize;
+
+    let snake = [{ x: 5, y: 5 }];
+    let direction = { x: 0, y: 0 };
+    let food = spawnFood();
+    let score = 0;
+
+    function drawBox(x, y, color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x * boxSize, y * boxSize, boxSize, boxSize);
+    }
+
+    function spawnFood() {
+      return {
+        x: Math.floor(Math.random() * cols),
+        y: Math.floor(Math.random() * rows)
+      };
+    }
+
+    function drawGame() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Piirrä ruoka
+      drawBox(food.x, food.y, 'red');
+
+      // Piirrä mato
+      snake.forEach(segment => drawBox(segment.x, segment.y, 'lime'));
+
+      // Piirrä pistemäärä
+      ctx.fillStyle = '#fff';
+      ctx.font = '16px Arial';
+      ctx.fillText(`Pisteet: ${score}`, 10, 20);
+    }
+
+    function updateGame() {
+      const head = { x: snake[0].x + direction.x, y: snake[0].y + direction.y };
+
+      // Törmäys seinään
+      if (head.x < 0 || head.x >= cols || head.y < 0 || head.y >= rows) {
+        alert(`Peli ohi! Pisteet: ${score}`);
+        document.location.reload();
+      }
+
+      // Törmäys omaan vartaloon
+      if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+        alert(`Peli ohi! Pisteet: ${score}`);
+        document.location.reload();
+      }
+
+      // Tarkista, osuuko mato ruokaan
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        food = spawnFood();
+      } else {
+        snake.pop(); // Poista viimeinen segmentti, jos ei syö ruokaa
+      }
+
+      snake.unshift(head); // Lisää uusi pää
+    }
+
+    function gameLoop() {
+      updateGame();
+      drawGame();
+    }
+
+    document.addEventListener('keydown', e => {
+      switch (e.key) {
+        case 'ArrowUp':
+          if (direction.y === 0) direction = { x: 0, y: -1 };
+          break;
+        case 'ArrowDown':
+          if (direction.y === 0) direction = { x: 0, y: 1 };
+          break;
+        case 'ArrowLeft':
+          if (direction.x === 0) direction = { x: -1, y: 0 };
+          break;
+        case 'ArrowRight':
+          if (direction.x === 0) direction = { x: 1, y: 0 };
+          break;
+      }
+    });
+
+    setInterval(gameLoop, 100); // Peli päivittyy 10 kertaa sekunnissa
+  </script>
+</body>
+</html>
